@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -36,15 +35,12 @@ func (s *APIServer) Run() error {
 		SecretReader: token.SecretFunc(func(id string) (string, error) { // secret key for JWT
 			return "secret", nil
 		}),
+		DisableXSRF:    true,
 		TokenDuration:  time.Minute * 5, // token expires in 5 minutes
 		CookieDuration: time.Hour * 24,  // cookie expires in 1 day and will enforce re-login
 		Issuer:         "go-api",
-		URL:            "http://127.0.0.1:8080",
+		URL:            "http://localhost:8080",
 		AvatarStore:    avatar.NewLocalFS("/tmp"),
-		Validator: token.ValidatorFunc(func(_ string, claims token.Claims) bool {
-			// allow only dev_* names
-			return claims.User != nil && strings.HasPrefix(claims.User.Name, "dev_")
-		}),
 	}
 
 	// create auth service with providers
@@ -55,7 +51,7 @@ func (s *APIServer) Run() error {
 			return false, err
 		}
 		ok = authService.ComparePasswords(u.Password, []byte(password))
-		return ok, err
+		return ok, nil
 	}))
 
 	// setup http server
@@ -64,12 +60,9 @@ func (s *APIServer) Run() error {
 
 	// setup auth routes
 	authRoutes, avaRoutes := service.Handlers()
-	router.Mount("/auth", authRoutes) // add auth handlers
-	router.Mount("/avatar", avaRoutes)
+	router.Mount("/auth", authRoutes)  // add auth handlers
+	router.Mount("/avatar", avaRoutes) // add avatar handler
 	userHandler := user.NewHandler(userStore)
-	userHandler.RegisterRoutes(router) // add avatar handler
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
-	})
+	userHandler.RegisterRoutes(router)
 	return http.ListenAndServe(":8080", router)
 }

@@ -2,9 +2,10 @@ package user
 
 import (
 	"database/sql"
-	"fmt"
+	"time"
 
 	"github.com/mamenzul/go-api/types"
+	"github.com/nrednav/cuid2"
 )
 
 type Store struct {
@@ -16,7 +17,8 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) CreateUser(user types.User) error {
-	_, err := s.db.Exec("INSERT INTO users ( email, password) VALUES (?, ?)", user.Email, user.Password)
+	id := cuid2.Generate()
+	_, err := s.db.Exec("INSERT INTO users ( id, email, password, created_at) VALUES (?, ?, ?, ?)", id, user.Email, user.Password, time.Now())
 	if err != nil {
 		return err
 	}
@@ -36,10 +38,6 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if u.ID == 0 {
-		return nil, fmt.Errorf("user not found")
 	}
 
 	return u, nil
