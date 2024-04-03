@@ -1,1 +1,5 @@
+.envrc
 .env
+bin
+tmp
+go-api
