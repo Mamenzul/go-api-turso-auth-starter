@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/mamenzul/go-api/services/auth"
+	mailgun "github.com/mamenzul/go-api/services/mail"
 	"github.com/mamenzul/go-api/types"
 	"github.com/mamenzul/go-api/utils"
 )
@@ -21,6 +22,8 @@ func NewHandler(store types.UserStore) *Handler {
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/register", h.handleRegister)
+	router.Post("/reset-password", h.handleResetPassword)
+	router.Post("/reset-password-token", h.handleResetPasswordToken)
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -53,4 +56,82 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, nil)
+}
+
+func (h *Handler) handleResetPassword(w http.ResponseWriter, r *http.Request) {
+	var user types.ResetPasswordPayload
+	if err := utils.ParseJSON(r, &user); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(user); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", errors))
+		return
+	}
+
+	//check if user exists
+	_, err := h.store.GetUserByEmail(user.Email)
+	// if not err send mail
+	if err == nil {
+		token, err := h.store.StoreResetToken(user.Email)
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+		body := "Click here to reset your password: http://localhost:3000/reset-password-token?token=" + token
+		_, err = mailgun.SendSimpleMessage("Reset password", body, user.Email)
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+	}
+	message := "If the email exists, a password reset link will be sent to it."
+
+	utils.WriteJSON(w, http.StatusCreated, message)
+}
+
+func (h *Handler) handleResetPasswordToken(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	var user types.ResetPasswordTokenPayload
+	if err := utils.ParseJSON(r, &user); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(user); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", errors))
+		return
+	}
+
+	//check if token is valid
+	valid, err := h.store.CheckResetToken(token)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if !valid {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid token"))
+		return
+	}
+
+	hashedPassword, err := auth.HashPassword(user.Password)
+
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = h.store.UpdatePassword(user.Email, hashedPassword)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	message := "Password updated successfully"
+
+	utils.WriteJSON(w, http.StatusCreated, message)
 }

@@ -14,9 +14,21 @@ type User struct {
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(User) error
+	StoreResetToken(email string) (string, error)
+	CheckResetToken(token string) (bool, error)
+	UpdatePassword(email string, password string) error
 }
 
 type RegisterUserPayload struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=3,max=130"`
+}
+
+type ResetPasswordPayload struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ResetPasswordTokenPayload struct {
+	Password string `json:"password" validate:"required,min=3,max=130"`
+	Email    string `json:"email" validate:"required,email"`
 }

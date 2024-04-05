@@ -58,3 +58,32 @@ func scanRowsIntoUser(rows *sql.Rows) (*types.User, error) {
 
 	return user, nil
 }
+
+func (s *Store) StoreResetToken(email string) (string, error) {
+	token := cuid2.Generate()
+	_, err := s.db.Exec("INSERT INTO password_resets (email, token, created_at, expires_at) VALUES (?, ?, ?, ?)", email, token, time.Now(), time.Now().Add(time.Minute*10))
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (s *Store) CheckResetToken(token string) (bool, error) {
+	var email string
+	err := s.db.QueryRow("SELECT email FROM password_resets WHERE token = ? AND expires_at > ?", token, time.Now()).Scan(&email)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (s *Store) UpdatePassword(email string, password string) error {
+	_, err := s.db.Exec("UPDATE users SET password = ? WHERE email = ?", password, email)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

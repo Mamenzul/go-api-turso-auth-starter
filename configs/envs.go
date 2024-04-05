@@ -8,9 +8,12 @@ import (
 )
 
 type Config struct {
-	PublicHost   string
-	Port         string
-	DATABASE_URL string
+	PublicHost      string
+	Port            string
+	DATABASE_URL    string
+	MAILGUN_API_KEY string
+	MAILGUN_SENDER  string
+	MAILGUN_DOMAIN  string
 }
 
 var Envs = initConfig()
@@ -19,9 +22,12 @@ func initConfig() Config {
 	godotenv.Load()
 
 	return Config{
-		PublicHost:   getEnv("PUBLIC_HOST", "http://localhost"),
-		Port:         getEnv("PORT", "8080"),
-		DATABASE_URL: getEnv("DATABASE_URL", "panic"),
+		PublicHost:      getEnv("PUBLIC_HOST", "http://localhost"),
+		Port:            getEnv("PORT", "8080"),
+		DATABASE_URL:    getEnv("DATABASE_URL", "panic"),
+		MAILGUN_API_KEY: getEnv("MAILGUN_API_KEY", "panic"),
+		MAILGUN_SENDER:  getEnv("MAILGUN_SENDER", "panic"),
+		MAILGUN_DOMAIN:  getEnv("MAILGUN_DOMAIN", "panic"),
 	}
 }
 
