@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -39,7 +40,6 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// hash password
 	hashedPassword, err := auth.HashPassword(user.Password)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
@@ -71,9 +71,7 @@ func (h *Handler) handleResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check if user exists
 	_, err := h.store.GetUserByEmail(user.Email)
-	// if not err send mail
 	if err == nil {
 		token, err := h.store.StoreResetToken(user.Email)
 		if err != nil {
@@ -128,6 +126,12 @@ func (h *Handler) handleResetPasswordToken(w http.ResponseWriter, r *http.Reques
 	err = h.store.UpdatePassword(user.Email, hashedPassword)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = h.store.DeleteResetToken(token)
+	if err != nil {
+		log.Default().Println(err)
 		return
 	}
 

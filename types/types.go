@@ -17,6 +17,7 @@ type UserStore interface {
 	StoreResetToken(email string) (string, error)
 	CheckResetToken(token string) (bool, error)
 	UpdatePassword(email string, password string) error
+	DeleteResetToken(token string) error
 }
 
 type RegisterUserPayload struct {

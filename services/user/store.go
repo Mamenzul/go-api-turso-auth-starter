@@ -79,6 +79,15 @@ func (s *Store) CheckResetToken(token string) (bool, error) {
 	return true, nil
 }
 
+func (s *Store) DeleteResetToken(token string) error {
+	_, err := s.db.Exec("DELETE FROM password_resets WHERE token = ?", token)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Store) UpdatePassword(email string, password string) error {
 	_, err := s.db.Exec("UPDATE users SET password = ? WHERE email = ?", password, email)
 	if err != nil {
