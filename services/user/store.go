@@ -96,3 +96,22 @@ func (s *Store) UpdatePassword(email string, password string) error {
 
 	return nil
 }
+
+func (s *Store) GetUsers() ([]types.User, error) {
+	rows, err := s.db.Query("SELECT * FROM users ")
+	if err != nil {
+		return nil, err
+	}
+
+	users := []types.User{}
+	u := new(types.User)
+	for rows.Next() {
+		u, err = scanRowsIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, *u)
+	}
+
+	return users, nil
+}

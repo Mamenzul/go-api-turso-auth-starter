@@ -25,6 +25,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/register", h.handleRegister)
 	router.Post("/reset-password", h.handleResetPassword)
 	router.Post("/reset-password-token", h.handleResetPasswordToken)
+	router.Get("/users", h.handleGetUsers)
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +93,10 @@ func (h *Handler) handleResetPassword(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
+	if token == "" {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("token is required"))
+		return
+	}
 	var user types.ResetPasswordTokenPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -138,4 +143,14 @@ func (h *Handler) handleResetPasswordToken(w http.ResponseWriter, r *http.Reques
 	message := "Password updated successfully"
 
 	utils.WriteJSON(w, http.StatusCreated, message)
+}
+
+func (h *Handler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.store.GetUsers()
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, users)
 }

@@ -162,6 +162,8 @@ github.com/tidwall/rtree v0.0.0-20180113144539-6cd427091e0e/go.mod h1:/h+UnNGt0I
 github.com/tidwall/tinyqueue v0.0.0-20180302190814-1e39f5511563/go.mod h1:mLqSmt7Dv/CNneF2wfcChfN1rvapyQr01LGKnKex0DQ=
 github.com/tidwall/tinyqueue v0.1.1 h1:SpNEvEggbpyN5DIReaJ2/1ndroY8iyEGxPYxoSaymYE=
 github.com/tidwall/tinyqueue v0.1.1/go.mod h1:O/QNHwrnjqr6IHItYrzoHAKYhBkLI67Q096fQP5zMYw=
+github.com/tursodatabase/go-libsql v0.0.0-20240410174707-5f61d1397cfa h1:sf5sAqDU53/6N10G8LWYP4j9D4UKjaMJp3pDRDGH5qE=
+github.com/tursodatabase/go-libsql v0.0.0-20240410174707-5f61d1397cfa/go.mod h1:TjsB2miB8RW2Sse8sdxzVTdeGlx74GloD5zJYUC38d8=
 github.com/tursodatabase/libsql-client-go v0.0.0-20240401075953-8e79a99d828a h1:LMz5RmEKz1epPZgUO3MtA5/X9Peudqm4rUoteSjLkho=
 github.com/tursodatabase/libsql-client-go v0.0.0-20240401075953-8e79a99d828a/go.mod h1:2Fu26tjM011BLeR5+jwTfs6DX/fNMEWV/3CBZvggrA4=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=

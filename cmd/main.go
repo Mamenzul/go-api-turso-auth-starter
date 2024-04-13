@@ -4,31 +4,44 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/mamenzul/go-api/cmd/api"
 	"github.com/mamenzul/go-api/configs"
-	"github.com/mamenzul/go-api/db"
+	"github.com/tursodatabase/go-libsql"
 )
 
 func main() {
-	db, err := db.CreateDb(configs.Envs.DATABASE_URL)
-	if err != nil {
-		log.Fatal(err)
-	}
+	dbName := "local.db"
+	authToken := configs.Envs.AUTH_TOKEN
+	url := configs.Envs.DATABASE_URL
 
-	initStorage(db)
+	dir, err := os.MkdirTemp("", "libsql-*")
+	if err != nil {
+		fmt.Println("Error creating temporary directory:", err)
+		os.Exit(1)
+	}
+	defer os.RemoveAll(dir)
+
+	dbPath := filepath.Join(dir, dbName)
+	syncInterval := time.Minute
+
+	connector, err := libsql.NewEmbeddedReplicaConnector(dbPath, url,
+		libsql.WithAuthToken(authToken),
+		libsql.WithSyncInterval(syncInterval),
+	)
+	if err != nil {
+		fmt.Println("Error creating connector:", err)
+		os.Exit(1)
+	}
+	defer connector.Close()
+	db := sql.OpenDB(connector)
+	defer db.Close()
 
 	server := api.NewAPIServer(fmt.Sprintf(":%s", configs.Envs.Port), db)
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func initStorage(db *sql.DB) {
-	err := db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("DB: Successfully connected!")
 }

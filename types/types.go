@@ -13,6 +13,7 @@ type User struct {
 
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
+	GetUsers() ([]User, error)
 	CreateUser(User) error
 	StoreResetToken(email string) (string, error)
 	CheckResetToken(token string) (bool, error)

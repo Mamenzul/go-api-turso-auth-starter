@@ -49,6 +49,7 @@ require (
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/libsql/sqlite-antlr4-parser v0.0.0-20240327125255-dbf53b6cbf06 // indirect
 	github.com/nrednav/cuid2 v1.0.0
+	github.com/tursodatabase/go-libsql v0.0.0-20240410174707-5f61d1397cfa
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	nhooyr.io/websocket v1.8.10 // indirect
